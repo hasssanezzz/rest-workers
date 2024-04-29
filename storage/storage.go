@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hasssanezzz/rest-workers/types"
 )
@@ -42,35 +41,13 @@ func (s *Storage) Create(task *types.Task) (int, error) {
 	return task.ID, nil
 }
 
-func (s *Storage) UpdateTaskStatus(id int, status types.Status) error {
-	if _, ok := s.Tasks[id]; ok {
-		s.Tasks[id].Status = status
+func (s *Storage) UpdateTask(updatedTask *types.Task) error {
+	if _, ok := s.Tasks[updatedTask.ID]; !ok {
+		return fmt.Errorf("task with id (%d) not found", updatedTask.ID)
 	}
 
-	return nil
-}
-
-func (s *Storage) PlaceTask(id int, placedAt time.Time) error {
-	if _, ok := s.Tasks[id]; ok {
-		s.Tasks[id].PlacedAt = placedAt
-	}
-
-	return nil
-}
-
-func (s *Storage) StartTask(id int, startedaAt time.Time) error {
-	if _, ok := s.Tasks[id]; ok {
-		s.Tasks[id].StartedAt = startedaAt
-	}
-
-	return nil
-}
-
-func (s *Storage) FinishTask(id int, result *types.Result, finishedAt time.Time) error {
-	if _, ok := s.Tasks[id]; ok {
-		s.Tasks[id].Result = *result // TODO does this have to be a pointer?
-		s.Tasks[id].FinishedAt = finishedAt
-	}
+	delete(s.Tasks, updatedTask.ID)
+	s.Tasks[updatedTask.ID] = updatedTask
 
 	return nil
 }
