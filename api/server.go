@@ -13,9 +13,6 @@ import (
 	"github.com/hasssanezzz/rest-workers/worker"
 )
 
-var payloadChan chan *types.Task = make(chan *types.Task)
-var restulsChan chan *types.Task = make(chan *types.Task)
-
 type Server struct {
 	listenAddr string
 	storage    *storage.Storage
@@ -29,6 +26,9 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 }
 
 func NewServer(listenAddr string, workerCount int) *Server {
+	payloadChan := make(chan *types.Task, workerCount)
+	restulsChan := make(chan *types.Task, workerCount)
+
 	localStorage := storage.NewStorage()
 
 	pool := worker.NewWorkerPool(
