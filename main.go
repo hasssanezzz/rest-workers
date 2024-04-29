@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"github.com/hasssanezzz/rest-workers/api"
+)
 
 func main() {
-	fmt.Println("Hello world")
+	listenAddr := ":3000"
+	server := api.NewServer(listenAddr)
+	server.Start()
 }
