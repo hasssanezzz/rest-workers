@@ -10,11 +10,16 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hasssanezzz/rest-workers/storage"
 	"github.com/hasssanezzz/rest-workers/types"
+	"github.com/hasssanezzz/rest-workers/worker"
 )
+
+var payloadChan chan *types.Task = make(chan *types.Task)
+var restulsChan chan *types.Task = make(chan *types.Task)
 
 type Server struct {
 	listenAddr string
 	storage    *storage.Storage
+	pool       *worker.WorkerPool
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
@@ -23,10 +28,27 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	return json.NewEncoder(w).Encode(v)
 }
 
-func NewServer(listenAddr string) *Server {
+func NewServer(listenAddr string, workerCount int) *Server {
+	localStorage := storage.NewStorage()
+
+	pool := worker.NewWorkerPool(
+		5,
+		payloadChan,
+		restulsChan,
+		func(finishedTask *types.Task) {
+
+		},
+		func(updatedTask *types.Task) {
+			localStorage.UpdateTask(updatedTask)
+		},
+	)
+
+	go pool.InitiateWorkers()
+
 	return &Server{
 		listenAddr: listenAddr,
-		storage:    storage.NewStorage(),
+		storage:    localStorage,
+		pool:       pool,
 	}
 }
 
@@ -83,10 +105,12 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task := types.NewTask(types.Payload{Number: bigInt}, types.WAITING, time.Now())
+	payload := types.Payload{Number: bigInt}
+	task := types.NewTask(payload, types.WAITING, time.Now())
 	taskId, _ := s.storage.Create(task)
 	task.ID = taskId
 
+	go s.pool.AddTask(task)
 	WriteJSON(w, http.StatusCreated, task)
 }
 

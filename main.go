@@ -6,6 +6,6 @@ import (
 
 func main() {
 	listenAddr := ":3000"
-	server := api.NewServer(listenAddr)
+	server := api.NewServer(listenAddr, 5)
 	server.Start()
 }
