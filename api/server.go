@@ -2,11 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"math/big"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/hasssanezzz/rest-workers/storage"
+	"github.com/hasssanezzz/rest-workers/types"
 )
 
 type Server struct {
@@ -62,6 +65,32 @@ func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	WriteJSON(w, 200, tasks)
 }
 
-func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {}
+func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
+	type RequestBody struct {
+		Value string `json:"value"`
+	}
+
+	var requestBody RequestBody
+	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil || requestBody.Value == "" {
+		WriteJSON(w, 400, "bad request body")
+		return
+	}
+
+	bigInt, ok := big.NewInt(0).SetString(requestBody.Value, 10)
+	if !ok {
+		WriteJSON(w, 400, "can not parse the provided number")
+		return
+	}
+
+	task := &types.Task{
+		Payload:  types.Payload{Number: bigInt},
+		PlacedAt: time.Now(),
+	}
+	taskId, _ := s.storage.Create(task)
+	task.ID = taskId
+
+	WriteJSON(w, 201, task)
+}
 
 func (s *Server) handleDeleteTask(w http.ResponseWriter, r *http.Request) {}
