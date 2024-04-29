@@ -43,7 +43,7 @@ func (s *Server) Start() error {
 
 func (s *Server) handleListTasks(w http.ResponseWriter, r *http.Request) {
 	tasks := s.storage.List()
-	WriteJSON(w, 200, tasks)
+	WriteJSON(w, http.StatusOK, tasks)
 }
 
 func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request) {
@@ -51,18 +51,18 @@ func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request) {
 	taskId, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		// TODO handle error: invalid id
-		WriteJSON(w, 400, "bad ID")
+		WriteJSON(w, http.StatusBadRequest, "bad ID")
 		return
 	}
 
 	tasks, err := s.storage.Get(taskId)
 	if err != nil {
 		// TODO handle error: 404
-		WriteJSON(w, 404, "task not found")
+		WriteJSON(w, http.StatusNotFound, "task not found")
 		return
 	}
 
-	WriteJSON(w, 200, tasks)
+	WriteJSON(w, http.StatusOK, tasks)
 }
 
 func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
@@ -73,13 +73,13 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	var requestBody RequestBody
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil || requestBody.Value == "" {
-		WriteJSON(w, 400, "bad request body")
+		WriteJSON(w, http.StatusBadRequest, "bad request body")
 		return
 	}
 
 	bigInt, ok := big.NewInt(0).SetString(requestBody.Value, 10)
 	if !ok {
-		WriteJSON(w, 400, "can not parse the provided number")
+		WriteJSON(w, http.StatusBadRequest, "can not parse the provided number")
 		return
 	}
 
@@ -90,7 +90,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	taskId, _ := s.storage.Create(task)
 	task.ID = taskId
 
-	WriteJSON(w, 201, task)
+	WriteJSON(w, http.StatusCreated, task)
 }
 
 func (s *Server) handleDeleteTask(w http.ResponseWriter, r *http.Request) {}
