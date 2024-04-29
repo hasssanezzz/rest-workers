@@ -19,3 +19,11 @@ type Task struct {
 	StartedAt  time.Time `json:"startedAt"`
 	FinishedAt time.Time `json:"finishedAt"`
 }
+
+func NewTask(payload Payload, status Status, placedAt time.Time) *Task {
+	return &Task{
+		Payload:  payload,
+		Status:   status,
+		PlacedAt: placedAt,
+	}
+}

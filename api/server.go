@@ -83,11 +83,7 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task := &types.Task{
-		Payload:  types.Payload{Number: bigInt},
-		Status:   types.WAITING,
-		PlacedAt: time.Now(),
-	}
+	task := types.NewTask(types.Payload{Number: bigInt}, types.WAITING, time.Now())
 	taskId, _ := s.storage.Create(task)
 	task.ID = taskId
 
