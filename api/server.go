@@ -58,7 +58,6 @@ func (s *Server) Start() error {
 	router.HandleFunc("/api/v0/task", s.handleListTasks).Methods("GET")
 	router.HandleFunc("/api/v0/task/{id}", s.handleGetTask).Methods("GET")
 	router.HandleFunc("/api/v0/task", s.handleCreateTask).Methods("POST")
-	router.HandleFunc("/api/v0/task/{id}", s.handleDeleteTask).Methods("DELETE")
 
 	return http.ListenAndServe(s.listenAddr, router)
 }
@@ -113,5 +112,3 @@ func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
 	go s.pool.AddTask(task)
 	WriteJSON(w, http.StatusCreated, task)
 }
-
-func (s *Server) handleDeleteTask(w http.ResponseWriter, r *http.Request) {}
