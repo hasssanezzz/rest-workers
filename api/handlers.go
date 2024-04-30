@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"math/big"
 	"net/http"
 	"strconv"
 	"time"
@@ -46,24 +45,12 @@ func (s *Server) handleGetTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleCreateTask(w http.ResponseWriter, r *http.Request) {
-	type RequestBody struct {
-		Value string `json:"value"`
-	}
-
-	var requestBody RequestBody
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
-	if err != nil || requestBody.Value == "" {
-		WriteJSON(w, http.StatusBadRequest, "bad request body")
+	var payload types.Payload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		WriteJSON(w, http.StatusNotFound, "Error decoding JSON: "+err.Error())
 		return
 	}
 
-	bigInt, ok := big.NewInt(0).SetString(requestBody.Value, 10)
-	if !ok {
-		WriteJSON(w, http.StatusBadRequest, "can not parse the provided number")
-		return
-	}
-
-	payload := types.Payload{Number: bigInt}
 	task := types.NewTask(payload, types.WAITING, time.Now())
 	taskId, _ := s.storage.Create(task)
 	task.ID = taskId
