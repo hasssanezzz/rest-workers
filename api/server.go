@@ -28,7 +28,7 @@ func NewServer(listenAddr string, workerCount int) *Server {
 	localStorage := storage.NewStorage()
 
 	pool := worker.NewWorkerPool(
-		5,
+		workerCount,
 		payloadChan,
 		restulsChan,
 		func(finishedTask *types.Task) {
