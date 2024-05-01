@@ -50,7 +50,7 @@ func (w *PrimeAnalyzerWorker) RunAndListen() {
 		w.PostStatusUpdateFunc(task)
 		log.Printf("Worker:%d :: STARTED\t %d\n", w.Index, task.ID)
 
-		result := w.compute(*task.Payload.Number)
+		result := w.compute(&task.Payload)
 
 		w.Status = WAITING
 		task.Result.Result = result
@@ -64,7 +64,9 @@ func (w *PrimeAnalyzerWorker) RunAndListen() {
 	}
 }
 
-func (w *PrimeAnalyzerWorker) compute(x big.Int) bool {
+func (w *PrimeAnalyzerWorker) compute(payload *types.Payload) bool {
+	x := *payload.Number
+
 	if x.Cmp(big.NewInt(1)) <= 0 || x.Cmp(big.NewInt(2)) > 0 && x.Bit(0) == 0 {
 		return false
 	}
