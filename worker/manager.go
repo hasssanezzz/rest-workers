@@ -6,9 +6,10 @@ type AfterFinishFunc func(*types.Task)
 
 type WorkerPool struct {
 	Count                int
-	Workers              []*PrimeAnalyzerWorker
+	Workers              []*Worker
 	ReadTaskChan         chan *types.Task
 	WriteTaskChan        chan *types.Task
+	ProcessFunc          ProcessFunc
 	AfterFinishFunc      AfterFinishFunc
 	PostStatusUpdateFunc PostStatusUpdateFunc
 }
@@ -17,27 +18,29 @@ func NewWorkerPool(
 	count int,
 	payloadChan chan *types.Task,
 	resultsChan chan *types.Task,
+	processFunc ProcessFunc,
 	afterFinishFunc AfterFinishFunc,
 	postStatusUpdateFunc PostStatusUpdateFunc,
 ) *WorkerPool {
-
 	return &WorkerPool{
 		Count:                count,
 		ReadTaskChan:         payloadChan,
 		WriteTaskChan:        resultsChan,
+		ProcessFunc:          processFunc,
 		AfterFinishFunc:      afterFinishFunc,
 		PostStatusUpdateFunc: postStatusUpdateFunc,
 	}
 }
 
 func (w *WorkerPool) InitiateWorkers() {
-	w.Workers = make([]*PrimeAnalyzerWorker, w.Count)
+	w.Workers = make([]*Worker, w.Count)
 	for i := 0; i < w.Count; i++ {
-		w.Workers[i] = NewPrimeAnalyzerWorker(
+		w.Workers[i] = NewWorker(
+			i,
 			w.ReadTaskChan,
 			w.WriteTaskChan,
 			w.PostStatusUpdateFunc,
-			i,
+			w.ProcessFunc,
 		)
 
 		go w.Workers[i].RunAndListen()

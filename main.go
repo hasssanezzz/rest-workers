@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"math/big"
 
 	"github.com/hasssanezzz/rest-workers/api"
 	"github.com/hasssanezzz/rest-workers/storage"
@@ -11,6 +12,31 @@ import (
 
 var payloadChan chan *types.Task
 var restulsChan chan *types.Task
+
+func ProcessFunc(payload *types.Payload) *types.Result {
+	x := *payload.Number
+
+	if x.Cmp(big.NewInt(1)) <= 0 || x.Cmp(big.NewInt(2)) > 0 && x.Bit(0) == 0 {
+		return &types.Result{
+			Result: false,
+		}
+	}
+
+	itr := new(big.Int).SetInt64(2)
+	sqrtX := new(big.Int).Sqrt(&x)
+	for itr.Cmp(sqrtX) <= 0 {
+		if new(big.Int).Mod(&x, itr).Cmp(big.NewInt(0)) == 0 {
+			return &types.Result{
+				Result: false,
+			}
+		}
+		itr.Add(itr, big.NewInt(1))
+	}
+
+	return &types.Result{
+		Result: true,
+	}
+}
 
 func main() {
 	listenAddr := flag.String("a", "127.0.0.1:3030", "the listen address in which the server will listen to")
@@ -24,6 +50,7 @@ func main() {
 		*workerCount,
 		payloadChan,
 		restulsChan,
+		ProcessFunc,
 		func(finishedTask *types.Task) {
 			// for later use
 		},
