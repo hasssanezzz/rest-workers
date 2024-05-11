@@ -12,7 +12,7 @@ The Concurrent Task Queue API is highly customizable, allowing users to define t
 - **Task Status Tracking**: Real-time monitoring of task statuses (queued, in progress, completed, failed).
 - **Task Result Retrieval**: Retrieve task results upon completion.
 
-## Task Types
+## Tasks
 
 The API supports various task types, each with its own payload and result structure. Users can define custom task types such as Payloads and Results based on their application needs.
 
@@ -35,6 +35,33 @@ type Result struct {
     // Define custom fields based on task processing logic
 }
 ```
+
+### Task processing
+
+To process a task you can write your own processing function that accepts a payload and returns a result, which will be injected to the worker pool then to the worker.
+
+```go
+type ProcessFunc func(*types.Payload) *types.Result
+
+func ProcessFunc(payload *types.Payload) *types.Result {
+
+	// ...
+	// do some computations here
+	// ...
+
+	return &types.Result{
+		...
+	}
+}
+
+// inject the processing function into the worker pool
+pool := &NewWorkerPool{
+	// ...
+	ProcessFunc: ProcessFunc,
+	// ...
+}
+```
+
 
 ## Getting Started
 
@@ -80,8 +107,9 @@ The API server will start listening on the specified address (-a) with the speci
 To create a new task, send a POST request to /api/v0/task with the following JSON payload:
 
 ```json
+// you custom payload structure
 {
-  "value": "2024444666688888688681"
+  "number": "2024444666688888688681"
 }
 ```
 
@@ -93,9 +121,11 @@ List Tasks Response:
 [
   {
     "id": 1,
+	// you custom payload structure
     "payload": {
       "number": 7999909
     },
+	// you custom result structure
     "result": {
       "result": true
     },
